@@ -678,6 +678,7 @@ export const Header: React.FC<HeaderProps> = ({
   const openNewSessionDraft = useSessionUIStore((state) => state.openNewSessionDraft);
   const isNewSessionDraftOpen = useSessionUIStore((state) => Boolean(state.newSessionDraft?.open));
   const currentSessionId = useSessionUIStore((state) => state.currentSessionId);
+  const updateSessionTitle = useSessionUIStore((state) => state.updateSessionTitle);
   const currentSessionMessagesResolved = useSessionMessagesResolved(currentSessionId ?? '');
   const currentSyncedSession = useSession(currentSessionId ?? null);
   const globalActiveSessions = useGlobalSessionsStore((state) => state.activeSessions);
@@ -1133,6 +1134,72 @@ export const Header: React.FC<HeaderProps> = ({
     const trimmedTitle = currentSession?.title?.trim();
     return trimmedTitle && trimmedTitle.length > 0 ? trimmedTitle : 'Untitled Session';
   }, [activeProjectLabel, currentSession?.title, currentSessionId]);
+  const [isRenamingSessionTitle, setIsRenamingSessionTitle] = React.useState(false);
+  const [sessionTitleDraft, setSessionTitleDraft] = React.useState('');
+  const [isSavingSessionTitle, setIsSavingSessionTitle] = React.useState(false);
+  const sessionTitleInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  React.useEffect(() => {
+    if (!isRenamingSessionTitle) {
+      return;
+    }
+
+    sessionTitleInputRef.current?.focus();
+    sessionTitleInputRef.current?.select();
+  }, [isRenamingSessionTitle]);
+
+  React.useEffect(() => {
+    setIsRenamingSessionTitle(false);
+    setSessionTitleDraft('');
+    setIsSavingSessionTitle(false);
+  }, [currentSessionId, isNewSessionDraftOpen]);
+
+  const handleStartRenameSessionTitle = React.useCallback(() => {
+    if (!currentSessionId || isNewSessionDraftOpen) {
+      return;
+    }
+
+    setSessionTitleDraft(currentSessionTitle);
+    setIsRenamingSessionTitle(true);
+  }, [currentSessionId, currentSessionTitle, isNewSessionDraftOpen]);
+
+  const handleCancelRenameSessionTitle = React.useCallback(() => {
+    setIsRenamingSessionTitle(false);
+    setSessionTitleDraft('');
+  }, []);
+
+  const handleSaveRenameSessionTitle = React.useCallback(async () => {
+    if (!currentSessionId || isSavingSessionTitle) {
+      return;
+    }
+
+    const nextTitle = sessionTitleDraft.trim();
+    if (!nextTitle) {
+      return;
+    }
+
+    if (nextTitle === currentSessionTitle) {
+      handleCancelRenameSessionTitle();
+      return;
+    }
+
+    setIsSavingSessionTitle(true);
+    try {
+      await updateSessionTitle(currentSessionId, nextTitle);
+      handleCancelRenameSessionTitle();
+    } catch (error) {
+      console.error('[header] failed to rename session', error);
+    } finally {
+      setIsSavingSessionTitle(false);
+    }
+  }, [
+    currentSessionId,
+    currentSessionTitle,
+    handleCancelRenameSessionTitle,
+    isSavingSessionTitle,
+    sessionTitleDraft,
+    updateSessionTitle,
+  ]);
 
   const currentSessionDiffStats = React.useMemo(() => {
     return resolveSessionDiffStats(currentSession?.summary as Parameters<typeof resolveSessionDiffStats>[0]);
@@ -1893,9 +1960,66 @@ export const Header: React.FC<HeaderProps> = ({
         )}
         {!isNewSessionDraftOpen ? (
           <div className="mr-3 min-w-0">
-            <div className="truncate pl-1 typography-ui-label text-[14px] font-normal leading-tight text-foreground">
-              {currentSessionTitle}
-            </div>
+            {isRenamingSessionTitle ? (
+              <form
+                className="app-region-no-drag flex min-w-0 items-center gap-1 pl-1"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleSaveRenameSessionTitle();
+                }}
+              >
+                <input
+                  ref={sessionTitleInputRef}
+                  value={sessionTitleDraft}
+                  onChange={(event) => setSessionTitleDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      event.stopPropagation();
+                      handleCancelRenameSessionTitle();
+                    }
+                  }}
+                  disabled={isSavingSessionTitle}
+                  className="h-6 min-w-0 max-w-[220px] flex-1 rounded border border-border bg-background px-1.5 typography-ui-label text-[14px] font-normal leading-tight text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60"
+                  aria-label={t('header.session.rename')}
+                />
+                <button
+                  type="submit"
+                  aria-label={t('header.session.renameSave')}
+                  title={t('header.session.renameSave')}
+                  disabled={isSavingSessionTitle || sessionTitleDraft.trim().length === 0}
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-interactive-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <Icon name="check" className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelRenameSessionTitle}
+                  aria-label={t('header.session.renameCancel')}
+                  title={t('header.session.renameCancel')}
+                  disabled={isSavingSessionTitle}
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-interactive-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <Icon name="close" className="h-4 w-4" />
+                </button>
+              </form>
+            ) : (
+              <div className="flex min-w-0 items-center gap-1 pl-1">
+                <div className="truncate typography-ui-label text-[14px] font-normal leading-tight text-foreground">
+                  {currentSessionTitle}
+                </div>
+                {currentSessionId ? (
+                  <button
+                    type="button"
+                    onClick={handleStartRenameSessionTitle}
+                    aria-label={t('header.session.rename')}
+                    title={t('header.session.rename')}
+                    className="app-region-no-drag inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground opacity-70 transition-colors hover:bg-interactive-hover hover:text-foreground hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <Icon name="pencil-ai" className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+              </div>
+            )}
             {(activeProjectLabel || currentBranchLabel || hasNonZeroSessionChanges) ? (
               <div className="flex min-w-0 items-center gap-1.5 truncate pl-1 typography-micro text-[10.5px] font-normal leading-tight text-muted-foreground/75">
                 {activeProjectLabel ? <span className="truncate">{activeProjectLabel}</span> : null}

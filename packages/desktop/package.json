@@ -13,6 +13,7 @@
     "tauri:dev": "tauri dev --features devtools",
     "tauri:build": "tauri build",
     "build:sidecar": "node ./scripts/build-sidecar.mjs",
+    "build:arch": "bun run build:sidecar && tauri build --no-bundle",
     "build": "bun -e \"process.exit(0)\"",
     "type-check": "bun -e \"process.exit(0)\"",
     "lint": "bun -e \"process.exit(0)\""

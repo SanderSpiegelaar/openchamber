@@ -4,6 +4,20 @@
 
 OpenChamber provides UI runtimes (web/desktop/VS Code) for interacting with an OpenCode server (local auto-start or remote URL). UI uses HTTP + SSE via `@opencode-ai/sdk`.
 
+## Agent skills
+
+### Issue tracker
+
+GitHub issues are the supported tracker when the user explicitly asks skills to publish. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Triage uses the five default workflow state labels, with existing `bug` and `enhancement` labels kept as classification labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a single-context repo: use root `CONTEXT.md` and `docs/adr/` when present, plus existing module docs. See `docs/agents/domain.md`.
+
 ## Runtime architecture (IMPORTANT)
 
 - `Desktop` (Electron) boots the web server **in the same Node process** as the Electron main, then loads the web UI from `http://127.0.0.1:<port>`. No sidecar subprocess.
