@@ -19,11 +19,13 @@ type CreateListener = (request: SessionCreateRequest) => void;
 type DirectoryListener = () => void;
 type GitRefreshHint = { directory: string };
 type GitRefreshListener = (hint: GitRefreshHint) => void;
+type RenameActiveSessionListener = () => void;
 
 const deleteListeners = new Set<DeleteListener>();
 const createListeners = new Set<CreateListener>();
 const directoryListeners = new Set<DirectoryListener>();
 const gitRefreshListeners = new Set<GitRefreshListener>();
+const renameActiveSessionListeners = new Set<RenameActiveSessionListener>();
 
 export const sessionEvents = {
   onDeleteRequest(listener: DeleteListener) {
@@ -68,5 +70,14 @@ export const sessionEvents = {
       return;
     }
     gitRefreshListeners.forEach((listener) => listener(hint));
+  },
+  onRenameActiveSessionRequest(listener: RenameActiveSessionListener) {
+    renameActiveSessionListeners.add(listener);
+    return () => {
+      renameActiveSessionListeners.delete(listener);
+    };
+  },
+  requestRenameActiveSession() {
+    renameActiveSessionListeners.forEach((listener) => listener());
   },
 };

@@ -164,6 +164,19 @@ export const registerSkillRoutes = (app, dependencies) => {
     }
   };
 
+  const mergeDiscoveredSkills = (primarySkills, fallbackSkills) => {
+    const merged = new Map();
+
+    for (const skill of [...(primarySkills || []), ...(fallbackSkills || [])]) {
+      if (!skill?.name || merged.has(skill.name)) {
+        continue;
+      }
+      merged.set(skill.name, skill);
+    }
+
+    return Array.from(merged.values());
+  };
+
   const listGitIdentitiesForResponse = () => {
     try {
       const profiles = getProfiles();
@@ -195,7 +208,10 @@ export const registerSkillRoutes = (app, dependencies) => {
       if (!directory) {
         return res.status(400).json({ error });
       }
-      const skills = (await fetchOpenCodeDiscoveredSkills(directory)) || discoverSkills(directory);
+      const skills = mergeDiscoveredSkills(
+        await fetchOpenCodeDiscoveredSkills(directory),
+        discoverSkills(directory),
+      );
 
       const enrichedSkills = skills.map((skill) => {
         const sources = getSkillSources(skill.name, directory, skill);
@@ -278,7 +294,7 @@ export const registerSkillRoutes = (app, dependencies) => {
       }
 
       const discovered = directory
-        ? ((await fetchOpenCodeDiscoveredSkills(directory)) || discoverSkills(directory))
+        ? mergeDiscoveredSkills(await fetchOpenCodeDiscoveredSkills(directory), discoverSkills(directory))
         : [];
       const installedByName = new Map(discovered.map((s) => [s.name, s]));
 

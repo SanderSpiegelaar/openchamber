@@ -997,6 +997,7 @@ export const dict: Record<I18nKey, string> = {
   'commandPalette.item.newMiniChat': 'Nowe okno Mini Chat',
   'commandPalette.item.newWorktreeDraft': 'Nowy szkic drzewa pracy',
   'commandPalette.item.addProject': 'Dodaj projekt',
+  'commandPalette.item.renameActiveSession': 'Zmień nazwę aktywnej sesji',
   'commandPalette.item.openSettings': 'Otwórz ustawienia...',
   'commandPalette.item.showContextUsage': 'Pokaż użycie kontekstu',
   'commandPalette.item.showSessionSwitcher': 'Pokaż przełącznik sesji',

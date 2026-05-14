@@ -82,6 +82,7 @@ export const CommandPalette: React.FC = () => {
 
   const openNewSessionDraft = useSessionUIStore((s) => s.openNewSessionDraft);
   const setCurrentSession = useSessionUIStore((s) => s.setCurrentSession);
+  const currentSessionId = useSessionUIStore((s) => s.currentSessionId);
 
   const activeSessions = useGlobalSessionsStore((s) => s.activeSessions);
   const currentDirectory = useDirectoryStore((s) => s.currentDirectory);
@@ -172,6 +173,19 @@ export const CommandPalette: React.FC = () => {
         }),
       },
       {
+        id: 'rename-active-session',
+        title: t('commandPalette.item.renameActiveSession'),
+        icon: <Icon name="pencil-ai" className="mr-2 h-4 w-4" />,
+        searchText: t('commandPalette.item.renameActiveSession'),
+        onSelect: run(() => {
+          setActiveMainTab('chat');
+          setSessionSwitcherOpen(false);
+          window.setTimeout(() => {
+            sessionEvents.requestRenameActiveSession();
+          }, 0);
+        }),
+      },
+      {
         id: 'toggle-sidebar',
         title: isMobile
           ? t('commandPalette.item.showSessionSwitcher')
@@ -241,11 +255,15 @@ export const CommandPalette: React.FC = () => {
         }),
       });
     }
+    if (!currentSessionId) {
+      return list.filter((item) => item.id !== 'rename-active-session');
+    }
     return list;
   }, [
     t,
     run,
     isMobile,
+    currentSessionId,
     setActiveMainTab,
     setSessionSwitcherOpen,
     openNewSessionDraft,

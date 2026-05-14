@@ -68,6 +68,7 @@ import { desktopHostsGet, locationMatchesHost, redactSensitiveUrl } from '@/lib/
 import { resolveSessionDiffStats } from '@/components/session/sidebar/utils';
 import { Icon } from "@/components/icon/Icon";
 import { useI18n } from '@/lib/i18n';
+import { sessionEvents } from '@/lib/sessionEvents';
 import type { Session } from '@opencode-ai/sdk/v2/client';
 import type { IconName } from "@/components/icon/icons";
 
@@ -1162,6 +1163,10 @@ export const Header: React.FC<HeaderProps> = ({
     setSessionTitleDraft(currentSessionTitle);
     setIsRenamingSessionTitle(true);
   }, [currentSessionId, currentSessionTitle, isNewSessionDraftOpen]);
+
+  React.useEffect(() => {
+    return sessionEvents.onRenameActiveSessionRequest(handleStartRenameSessionTitle);
+  }, [handleStartRenameSessionTitle]);
 
   const handleCancelRenameSessionTitle = React.useCallback(() => {
     setIsRenamingSessionTitle(false);

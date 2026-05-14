@@ -1677,6 +1677,7 @@ export const dict = {
   'commandPalette.item.newMiniChat': 'New Mini Chat Window',
   'commandPalette.item.newWorktreeDraft': 'New Worktree Draft',
   'commandPalette.item.addProject': 'Add Project',
+  'commandPalette.item.renameActiveSession': 'Rename Active Session',
   'commandPalette.item.showSessionSwitcher': 'Show Session Switcher',
   'commandPalette.item.toggleSidebar': 'Toggle Sidebar',
   'commandPalette.item.toggleRightSidebar': 'Toggle Right Sidebar',

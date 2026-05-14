@@ -1643,6 +1643,7 @@ export const dict: Record<I18nKey, string> = {
   'commandPalette.item.newMiniChat': '新建 Mini Chat 窗口',
   'commandPalette.item.newWorktreeDraft': '新建工作树草稿',
   'commandPalette.item.addProject': '添加项目',
+  'commandPalette.item.renameActiveSession': '重命名活动会话',
   'commandPalette.item.showSessionSwitcher': '显示会话切换器',
   'commandPalette.item.toggleSidebar': '切换侧边栏',
   'commandPalette.item.toggleRightSidebar': '切换右侧边栏',
